@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: seif12345
+      POSTGRES_DB: trailblazer
+    ports:
+      - "5432:5432" # Only needed if you want to access from host
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./data/dump:/docker-entrypoint-initdb.d
+      # The second mount lets you put `.sql` or `.sh` files in ./data/dump,
+      # and they will be executed on container startup.
+
+  app:
+    build: .
+    container_name: back
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://postgres:seif12345@localhost:5432/trailblazer
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=trailblazer
+      - DB_USER=postgres
+      - DB_PASSWORD=seif12345
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  postgres-data:
